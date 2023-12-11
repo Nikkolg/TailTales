@@ -3,7 +3,7 @@ const {Schema, model} = require('mongoose')
 const UserSchema = new Schema({
     name: {
         type: String,
-        required: true
+        // required: true,
     },
     email: {
         type: String,
@@ -18,7 +18,7 @@ const UserSchema = new Schema({
     },
     animalType: {
         type: String,
-        required: true,
+        // required: true,
         enum: ['dog', 'cat', 'fish', 'bird', 'reptile', 'other'],
         default: 'other',
     },
@@ -27,6 +27,7 @@ const UserSchema = new Schema({
     },
     gender: {
         type: String,
+        // required: true,
         enum: ['male', 'female', 'other']
     },
     avatar: {
