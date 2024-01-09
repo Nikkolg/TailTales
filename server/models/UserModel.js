@@ -19,8 +19,8 @@ const UserSchema = new Schema({
     animalType: {
         type: String,
         // required: true,
-        enum: ['dog', 'cat', 'fish', 'bird', 'reptile', 'other'],
-        default: 'other',
+        enum: ['Dog', 'Cat', 'Fish', 'Bird', 'Reptile', 'Other'],
+        default: 'Other',
     },
     age: {
         type: Number,
@@ -28,7 +28,7 @@ const UserSchema = new Schema({
     gender: {
         type: String,
         // required: true,
-        enum: ['male', 'female', 'other']
+        enum: ['Male', 'Female', 'Other']
     },
     avatar: {
         type: String,

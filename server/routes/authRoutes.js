@@ -17,7 +17,7 @@ authRouter.post(
 )
 
 authRouter.post(
-    '/login', 
+    '/auth', 
     authController.auth
 )
 
