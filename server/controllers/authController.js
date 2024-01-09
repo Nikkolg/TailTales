@@ -9,7 +9,7 @@ class AuthController {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ message: 'Uncorrect request', errors });
+                return res.status(400).json({ message: 'Неверный запрос', errors });
             }
 
             const {
@@ -24,7 +24,7 @@ class AuthController {
             const userCheck = await User.findOne({ email });
             if (userCheck) {
                 return res.status(400).json({
-                    message: `The user with email ${email} already exists. Please use a different email or log in`,
+                    message: `Пользователь с email ${email} уже существует. Пожалуйста введите другой email или авторизируйтесь`,
                 });
             }
 
@@ -41,10 +41,10 @@ class AuthController {
 
             await user.save();
 
-            return res.json({ message: 'User was created' });
+            return res.json({ message: 'Пользователь создан' });
         } catch (e) {
             console.error(e);
-            res.status(500).json({ message: 'Server error' });
+            res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
 
@@ -53,12 +53,12 @@ class AuthController {
             const { email, password } = req.body;
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(400).json({ message: 'User not found' });
+                return res.status(400).json({ message: 'Пользователь не найден' });
             }
 
             const isPassValid = bcrypt.compareSync(password, user.password);
             if (!isPassValid) {
-                return res.status(400).json({ message: 'Invalid password' });
+                return res.status(400).json({ message: 'Неверный пароль' });
             }
 
             const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY, { expiresIn: '2h' });
@@ -77,7 +77,7 @@ class AuthController {
             });
         } catch (e) {
             console.error(e);
-            res.status(500).json({ message: 'Server error' });
+            res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
 }

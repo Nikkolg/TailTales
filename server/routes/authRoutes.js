@@ -10,14 +10,14 @@ const authRouter = new Router();
 authRouter.post(
     '/registration', 
     [
-        check('email', 'Uncorrect email').isEmail(),
-        check('password', 'Password must be longer than 5 and shorter than 15').isLength({ min: 5, max: 15 }),
+        check('email', 'Неверный email').isEmail(),
+        check('password', 'Пароль должен быть не менее 5 и не более 15 символов').isLength({ min: 5, max: 15 }),
     ],
     authController.registration
 )
 
 authRouter.post(
-    '/auth', 
+    '/', 
     authController.auth
 )
 
