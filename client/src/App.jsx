@@ -1,8 +1,9 @@
+import { HomePage } from "./pages/Home"
 
 function App() {
 
   return (
-    <>Home</>
+    <HomePage />
   )
 }
 
