@@ -1,6 +1,8 @@
 const {Router} = require('express')
-const authController = require('../controllers/authController')
 const {check} = require('express-validator')
+const authenticateMiddleware = require('../middleware/authenticate');
+const authController = require('../controllers/authController')
+
 
 require('dotenv').config()
 
@@ -20,5 +22,11 @@ authRouter.post(
     '/', 
     authController.auth
 )
+
+authRouter.get(
+    '/user', 
+    authenticateMiddleware,
+    authController.getCurrentUser
+);
 
 module.exports = authRouter

@@ -61,8 +61,8 @@ class AuthController {
                 return res.status(400).json({ message: 'Неверный пароль' });
             }
 
-            const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY, { expiresIn: '2h' });
-
+            const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, { expiresIn: '2h' });
+            console.log(`Создан токен ${token}`);
             return res.json({
                 token,
                 user: {
@@ -77,6 +77,15 @@ class AuthController {
             });
         } catch (e) {
             console.error(e);
+            res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async getCurrentUser(req, res) {
+        try {
+            res.json(req.user);
+        } catch (error) {
+            console.error('Ошибка при получении данных пользователя:', error);
             res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
