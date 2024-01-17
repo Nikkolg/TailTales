@@ -6,15 +6,22 @@ const useAuthRequest = () => {
     const sendRequest = useCallback(
         async (url, method, body) => {
             try {
+                const token = localStorage.getItem('token');
+                console.log('Токен, отправляемый на сервер:', token);
+
+                let headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+                if (token) {
+                    headers = { ...headers, Authorization: `Bearer ${token}`};
+                }
+
                 const response = await fetch(url, {
                     method,
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
+                    headers,
+                    body: body ? JSON.stringify(body) : undefined,
                 })
-
                 if (!response.ok) {
                     const json = await response.json();
                     throw new Error(json.message || "Ошибка, запрос не выполнен");
@@ -29,12 +36,19 @@ const useAuthRequest = () => {
 
     const register = useCallback(
         async (url, body) => {
-          return sendRequest(url, 'POST', body);
+            return sendRequest(url, 'POST', body);
         },
         [sendRequest]
-      );
+    );
 
-    return { sendRequest, register, error, setError };
+    const get = useCallback(
+        async (url) => {
+            return sendRequest(url, 'GET', null);
+        },
+        [sendRequest]
+    );
+
+    return { sendRequest, register, get, error, setError };
 
 };
 

@@ -17,6 +17,8 @@ export const LogIn = () => {
       const res = await sendRequest('http://localhost:3008/', 'POST', formData);
 
       if (res && res.token) {
+        localStorage.setItem('token', res.token);
+        console.log(res.token);
         console.log('Добро пожаловать');
         navigate('/main');
       } else {
