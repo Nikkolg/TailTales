@@ -9,7 +9,13 @@ export const MainPage = () => {
         try {
             const result = await get('http://localhost:3008/user');
             console.log(result);
-            setUser(result);
+            setUser(result.user);
+
+            if (result && Object.keys(result).length > 0) {
+                setUser(result);
+            } else {
+                console.error('Ошибка при получении данных пользователя: Ответ от сервера не содержит данных пользователя');
+            }
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
         }

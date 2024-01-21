@@ -11,24 +11,24 @@ export const LogIn = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null)
-    setLoginError(null)
-    try {
-      const res = await sendRequest('http://localhost:3008/', 'POST', formData);
+    setError(null);
+    setLoginError(null);
 
-      if (res && res.token) {
-        localStorage.setItem('token', res.token);
-        console.log(res.token);
-        console.log('Добро пожаловать');
-        navigate('/main');
-      } else {
-        setLoginError('Неверный логин или пароль');
-      }
-      
+    try {
+        const res = await sendRequest('http://localhost:3008/', 'POST', formData);
+
+        if (res && res.user) {
+            document.cookie = `sessionId=${res.sessionId}; path=/;`;
+            console.log(res.sessionId);
+            navigate('/main');
+        } else {
+            setLoginError('Неверный логин или пароль или пустой ответ');
+        }
     } catch (error) {
-      console.error('Ошибка при авторизации', error);
+        console.error('Ошибка при авторизации', error);
+        setLoginError('Ошибка при авторизации. Проверьте консоль для более подробной информации.');
     }
-  }
+}
 
   return (
     <>

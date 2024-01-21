@@ -41,6 +41,16 @@ class AuthController {
 
             await user.save();
 
+            req.session.user = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                age: user.age,
+                animalType: user.animalType,
+                gender: user.gender,
+                avatar: user.avatar,
+            };
+
             return res.json({ message: 'Пользователь создан' });
         } catch (e) {
             console.error(e);
@@ -61,10 +71,26 @@ class AuthController {
                 return res.status(400).json({ message: 'Неверный пароль' });
             }
 
-            const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, { expiresIn: '2h' });
-            console.log(`Создан токен ${token}`);
+            req.session.user = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                age: user.age,
+                animalType: user.animalType,
+                gender: user.gender,
+                avatar: user.avatar,
+            };
+
+            console.log('Session data after authentication:', req.session.user);
+
+
+            res.cookie('sessionId', req.sessionID, {
+                httpOnly: true,
+            });
+
             return res.json({
-                token,
+                message: 'Аутентификация успешна',
+                sessionId: req.sessionID,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -83,7 +109,13 @@ class AuthController {
 
     async getCurrentUser(req, res) {
         try {
-            res.json(req.user);
+            const currentUser = req.session.user;
+            console.log(currentUser);
+            if (!currentUser) {
+                return res.status(401).json({ message: 'Пользователь не авторизован' });
+            }
+    
+            res.json(currentUser);
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
             res.status(500).json({ message: 'Сервер недоступен' });

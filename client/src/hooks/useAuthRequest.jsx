@@ -6,15 +6,15 @@ const useAuthRequest = () => {
     const sendRequest = useCallback(
         async (url, method, body) => {
             try {
-                const token = localStorage.getItem('token');
-                console.log('Токен, отправляемый на сервер:', token);
+                const sessionId = document.cookie.replace(/(?:(?:^|.*;\s*)sessionId\s*=\s*([^;]*).*$)|^.*$/, '$1');
+                // console.log('Session ID, отправляемый на сервер:', sessionId);
 
                 let headers = {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }
-                if (token) {
-                    headers = { ...headers, Authorization: `Bearer ${token}`};
+                if (sessionId) {
+                    headers = { ...headers, 'X-Session-ID': sessionId };
                 }
 
                 const response = await fetch(url, {
@@ -22,14 +22,21 @@ const useAuthRequest = () => {
                     headers,
                     body: body ? JSON.stringify(body) : undefined,
                 })
+
                 if (!response.ok) {
-                    const json = await response.json();
-                    throw new Error(json.message || "Ошибка, запрос не выполнен");
+                    try {
+                        const json = await response.json();
+                        throw new Error(json.message || "Ошибка, запрос не выполнен");
+                    } catch (jsonError) {
+                        throw new Error(`Ошибка, запрос не выполнен: ${response.statusText}`);
+                    }
                 }
+                
                 return await response.json();
             } catch (e) {
                 setError(e.message);
                 console.error('Ошибка при запросе на сервер:', e);
+                throw e;
             }
         }, []
     );
@@ -43,9 +50,40 @@ const useAuthRequest = () => {
 
     const get = useCallback(
         async (url) => {
-            return sendRequest(url, 'GET', null);
+            try {
+                const sessionId = document.cookie.replace(/(?:(?:^|.*;\s*)sessionId\s*=\s*([^;]*).*$)|^.*$/, '$1');
+            
+            if (!sessionId) {
+                throw new Error('Сессия отсутствует или истекла');
+            }
+
+            let headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Session-ID': sessionId,
+            }
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers,
+            });
+    
+            if (!response.ok) {
+                try {
+                    const json = await response.json();
+                    throw new Error(json.message || "Ошибка, запрос не выполнен");
+                } catch (jsonError) {
+                    throw new Error(`Ошибка, запрос не выполнен: ${response.statusText}`);
+                }
+            }
+                
+                return await response.json();
+            } catch (e) {
+                setError(e.message);
+                console.error('Ошибка при запросе на сервер:', e);
+            }
         },
-        [sendRequest]
+        [setError]
     );
 
     return { sendRequest, register, get, error, setError };
