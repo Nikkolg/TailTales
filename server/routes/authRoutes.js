@@ -1,6 +1,5 @@
 const {Router} = require('express')
 const {check} = require('express-validator')
-const authenticateMiddleware = require('../middleware/authenticate');
 const authController = require('../controllers/authController')
 
 
@@ -25,7 +24,6 @@ authRouter.post(
 
 authRouter.get(
     '/user', 
-    authenticateMiddleware,
     authController.getCurrentUser
 );
 
