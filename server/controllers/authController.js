@@ -70,6 +70,8 @@ class AuthController {
                 return res.status(400).json({ message: 'Неверный пароль' });
             }
 
+            await User.updateOne({ _id: user._id }, { currentUser: true });
+
             return res.json({
                 message: 'Аутентификация успешна',
                 user: {
@@ -80,11 +82,25 @@ class AuthController {
                     animalType: user.animalType,
                     gender: user.gender,
                     avatar: user.avatar,
+                    currentUser: true,
                 },
             });
         } catch (e) {
             console.error(e);
             res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async getCurrentUser(req, res) {
+        try {
+            const user = await User.findOne({ currentUser: true }, '-password');
+            if (!user) {
+                console.log('Пользователь не найден');
+            }
+            return res.json({ user });
+        } catch (error) {
+            console.error('Ошибка при получении данных пользователя:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
 
