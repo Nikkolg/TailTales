@@ -48,7 +48,11 @@ const UserSchema = new Schema({
                     return 'default-avatar.jpg';
             }
         }
-    }
+    },
+    currentUser: {
+        type: Boolean,
+        default: false
+    },
 })
 
 module.exports = model('User', UserSchema)
