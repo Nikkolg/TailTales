@@ -17,14 +17,8 @@ authRouter.post(
     authController.registration
 )
 
-authRouter.post(
-    '/', 
-    authController.auth
-)
+authRouter.post('/', authController.auth)
 
-authRouter.get(
-    '/user', 
-    authController.getCurrentUser
-);
+authRouter.get('/allUsers', authController.getAllUsers);
 
 module.exports = authRouter

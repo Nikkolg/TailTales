@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import useAuthRequest from '../../hooks/useAuthRequest';
+import { setCurrentUser } from '../../redux/slices/userSlice';
 
 export const LogIn = () => {
   const { sendRequest, setError } = useAuthRequest();
   const [formData, setFormData] = useState({email: '', password: ''})
   const [loginError, setLoginError] = useState(null);
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,17 +18,14 @@ export const LogIn = () => {
 
     try {
         const res = await sendRequest('http://localhost:3008/', 'POST', formData);
-
         if (res && res.user) {
-            document.cookie = `sessionId=${res.sessionId}; path=/;`;
-            console.log(res.sessionId);
+          dispatch(setCurrentUser(res.user))
             navigate('/main');
         } else {
-            setLoginError('Неверный логин или пароль или пустой ответ');
+            setLoginError('Неверный логин или пароль');
         }
     } catch (error) {
         console.error('Ошибка при авторизации', error);
-        setLoginError('Ошибка при авторизации. Проверьте консоль для более подробной информации.');
     }
 }
 

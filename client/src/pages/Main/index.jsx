@@ -1,35 +1,39 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import useAuthRequest from '../../hooks/useAuthRequest';
+import { setAllUsers } from '../../redux/slices/userSlice';
+
+
 
 export const MainPage = () => {
-    const [user, setUser] = useState({});
-    const { get } = useAuthRequest();
+    const currentUser = useSelector((state) => state.user.currentUser);
+    const allUsers = useSelector((state) => state.user.allUsers);
+    const { sendRequest } = useAuthRequest();
+    const dispatch = useDispatch()
 
-    const updateUser = useCallback(async () => {
-        try {
-            const result = await get('http://localhost:3008/user');
-            console.log(result);
-            setUser(result.user);
+    console.log(currentUser);
+    console.log('All Users:', allUsers);
 
-            if (result && Object.keys(result).length > 0) {
-                setUser(result);
-            } else {
-                console.error('Ошибка при получении данных пользователя: Ответ от сервера не содержит данных пользователя');
-            }
-        } catch (error) {
-            console.error('Ошибка при получении данных пользователя:', error);
-        }
-    }, [get]);
 
     useEffect(() => {
-        updateUser();
-    }, [updateUser]);
+        const fetchAllUsers = async () => {
+            try {
+                const res = await sendRequest('http://localhost:3008/allUsers', 'GET');
+                if (res && res.users) {
+                dispatch(setAllUsers(res.users));
+            }
+            } catch (error) {
+                console.error('Ошибка при получении данных всех пользователей', error);
+            }
+        };
+    
+        fetchAllUsers();
+    }, [sendRequest]);
 
     return (
         <>
             <div>
                 <h1>MainPage</h1>
-                <p>User Name: {user && user.name}</p>
             </div>
         </>
     );
