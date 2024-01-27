@@ -113,6 +113,22 @@ class AuthController {
             return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
+
+    async logout(req, res) {
+    try {
+        const currentUser = await User.findOne({ currentUser: true });
+
+        if (currentUser) {
+            await User.updateOne({ _id: currentUser._id }, { currentUser: false });
+            return res.json({ message: 'Выход выполнен успешно' });
+        }
+
+        return res.status(400).json({ message: 'Текущий пользователь не найден' });
+    } catch (error) {
+        console.error('Ошибка при выходе:', error);
+        res.status(500).json({ message: 'Сервер недоступен' });
+    }
+}
 }
 
 module.exports = new AuthController()

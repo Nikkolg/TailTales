@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import useAuthRequest from '../../hooks/useAuthRequest';
-import { setAllUsers, setCurrentUser } from '../../redux/slices/userSlice';
+import { logoutUser, setAllUsers, setCurrentUser } from '../../redux/slices/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -10,10 +11,11 @@ export const MainPage = () => {
     const allUsers = useSelector((state) => state.user.allUsers);
     const { sendRequest } = useAuthRequest();
     const dispatch = useDispatch()
+    const navigate = useNavigate();
+
 
     console.log(currentUser);
     console.log('All Users:', allUsers);
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,17 +37,26 @@ export const MainPage = () => {
 
         fetchData();
     }, [dispatch, sendRequest]);
+    
+    async function userLogout() {
+        try {
+            await sendRequest('http://localhost:3008/logout', 'GET');
+            dispatch(logoutUser())
+            navigate('/')
+        } catch (error) {
+            console.error('Ошибка при выходе со страницы:', error);
+        }
+    }
 
     return (
         <>
             <div>
                 <h1>MainPage</h1>
-                <p>ID {currentUser.id}</p>
                 <p>NAME {currentUser.name}</p>
                 <p>EMAIL {currentUser.email}</p>
                 <p>AGE {currentUser.age}</p>
                 <img src={currentUser.avatar} alt="" />
-
+                <button onClick={userLogout}>Выход</button>
             </div>
         </>
     );
