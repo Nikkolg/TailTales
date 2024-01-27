@@ -1,6 +1,5 @@
 const User = require('../models/UserModel')
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
 const {validationResult} = require('express-validator')
 
 
@@ -71,26 +70,8 @@ class AuthController {
                 return res.status(400).json({ message: 'Неверный пароль' });
             }
 
-            req.session.user = {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                age: user.age,
-                animalType: user.animalType,
-                gender: user.gender,
-                avatar: user.avatar,
-            };
-
-            console.log('Session data after authentication:', req.session.user);
-
-
-            res.cookie('sessionId', req.sessionID, {
-                httpOnly: true,
-            });
-
             return res.json({
                 message: 'Аутентификация успешна',
-                sessionId: req.sessionID,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -107,18 +88,13 @@ class AuthController {
         }
     }
 
-    async getCurrentUser(req, res) {
+    async getAllUsers(req, res) {
         try {
-            const currentUser = req.session.user;
-            console.log(currentUser);
-            if (!currentUser) {
-                return res.status(401).json({ message: 'Пользователь не авторизован' });
-            }
-    
-            res.json(currentUser);
+            const users = await User.find({}, '-password');
+            return res.json({ users });
         } catch (error) {
-            console.error('Ошибка при получении данных пользователя:', error);
-            res.status(500).json({ message: 'Сервер недоступен' });
+            console.error('Ошибка при получении списка пользователей:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
 }
