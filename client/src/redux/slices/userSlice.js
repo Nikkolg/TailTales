@@ -15,9 +15,13 @@ const userSlice = createSlice({
     setAllUsers: (state, action) => {
       state.allUsers = action.payload;
     },
+    logoutUser: (state) => {
+      state.currentUser = 'null';
+      state.allUsers = []
+    },
   },
 });
 
-export const { setCurrentUser, setAllUsers } = userSlice.actions;
+export const { setCurrentUser, setAllUsers, logoutUser} = userSlice.actions;
 
 export default userSlice.reducer;

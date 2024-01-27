@@ -23,4 +23,7 @@ authRouter.get('/currentUser', authController.getCurrentUser);
 
 authRouter.get('/allUsers', authController.getAllUsers);
 
+authRouter.get('/logout', authController.logout);
+
+
 module.exports = authRouter
