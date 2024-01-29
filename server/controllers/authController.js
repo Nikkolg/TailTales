@@ -129,6 +129,23 @@ class AuthController {
         res.status(500).json({ message: 'Сервер недоступен' });
     }
 }
+
+async updateCurrentUser(req, res) {
+    try {
+        const currentUser = await User.findOne({ currentUser: true });
+
+        if (!currentUser) {
+            return res.status(400).json({ message: 'Текущий пользователь не найден' });
+        }
+
+        await User.updateOne({ _id: currentUser._id }, { ...req.body, currentUser: true });
+
+        return res.json({ message: 'Данные пользователя успешно обновлены' });
+    } catch (error) {
+        console.error('Ошибка при обновлении данных пользователя на сервере:', error);
+        return res.status(500).json({ message: 'Сервер недоступен' });
+    }
+}
 }
 
 module.exports = new AuthController()

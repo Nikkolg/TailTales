@@ -25,5 +25,8 @@ authRouter.get('/allUsers', authController.getAllUsers);
 
 authRouter.get('/logout', authController.logout);
 
+authRouter.put('/updateCurrentUser', authController.updateCurrentUser);
+
+
 
 module.exports = authRouter
