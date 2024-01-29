@@ -40,7 +40,11 @@ const useAuthRequest = () => {
         [sendRequest]
     );
 
-    return { sendRequest, register, error, setError };
+    const updateCurrentUser = async (url, body) => {
+        return sendRequest(url, 'PUT', body);
+    };
+
+    return { sendRequest, register, updateCurrentUser, error, setError };
 
 };
 
