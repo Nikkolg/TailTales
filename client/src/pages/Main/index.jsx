@@ -8,8 +8,7 @@ import * as SC from "./styles"
 export const MainPage = () => {
     const currentUser = useSelector((state) => state.user.currentUser);
     const allUsers = useSelector((state) => state.user.allUsers);
-    const { sendRequest } = useAuthRequest();
-    const { updateCurrentUser } = useAuthRequest();
+    const { sendRequest, updateCurrentUser } = useAuthRequest();
     const dispatch = useDispatch()
     const navigate = useNavigate();
 
@@ -31,6 +30,28 @@ export const MainPage = () => {
             value: '',
         },
     });
+
+    const [addAndRemoveFriend, setAddAndRemoveFriend] = useState({
+        addFriendId: '',
+        removeFriendId: ''
+    })
+
+    const fetchData = async () => {
+        try {
+            const resCurrentUser = await sendRequest('http://localhost:3008/currentUser', 'GET');
+            const resAllUsers = await sendRequest('http://localhost:3008/allUsers', 'GET');
+
+            if (resCurrentUser && resCurrentUser.user) {
+                dispatch(setCurrentUser(resCurrentUser.user));
+            }
+
+            if (resAllUsers && resAllUsers.users) {
+                dispatch(setAllUsers(resAllUsers.users));
+            }
+        } catch (error) {
+            console.error('Ошибка при получении данных', error);
+        }
+}
 
     const handleEditToggle = () => {
         setEditing(!editing);
@@ -76,42 +97,46 @@ export const MainPage = () => {
             gender: showOtherFields.gender.show ? showOtherFields.gender.value : editedInfo.gender,
         };
         
-        dispatch(setCurrentUser(updatedInfo));
         setEditing(false);
 
         try {
             await updateCurrentUser('http://localhost:3008/updateCurrentUser', updatedInfo);
             dispatch(setCurrentUser(updatedInfo));
+            fetchData();
             setEditing(false);
         } catch (error) {
             console.error('Ошибка при обновлении данных на сервере', error);
         }
     };
 
+    const handleAddFriend = async (userId) => {
+        try {
+            await sendRequest('http://localhost:3008/addFriend', 'POST', { friendId: userId })
+            setAddAndRemoveFriend(prevState => ({ ...prevState, addFriendId: userId }));
+        } catch (error) {
+            console.error('Ошибка при добавлении друга:', error);
+        }
+    }
+
+    const handleRemoveFriend = async (userId) => {
+        try {
+            await sendRequest('http://localhost:3008/removeFriend', 'POST', { friendId: userId })
+            setAddAndRemoveFriend(prevState => ({ ...prevState, removeFriendId: userId }));
+        } catch (error) {
+            console.error('Ошибка при добавлении друга:', error);
+        }
+    }
+
 
     console.log(currentUser);
-    console.log('All Users:', allUsers);
+    // console.log('All Users:', allUsers);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const resCurrentUser = await sendRequest('http://localhost:3008/currentUser', 'GET');
-                const resAllUsers = await sendRequest('http://localhost:3008/allUsers', 'GET');
-
-                if (resCurrentUser && resCurrentUser.user) {
-                    dispatch(setCurrentUser(resCurrentUser.user));
-                }
-
-                if (resAllUsers && resAllUsers.users) {
-                    dispatch(setAllUsers(resAllUsers.users));
-                }
-            } catch (error) {
-                console.error('Ошибка при получении данных', error);
-            }
-        };
+        
+        
 
         fetchData();
-    }, [dispatch, sendRequest]);
+    }, [dispatch, sendRequest, addAndRemoveFriend]);
     
     async function userLogout() {
         try {
@@ -242,24 +267,31 @@ export const MainPage = () => {
                 </SC.Gallery>
 
                 <SC.RibbonFriends>
-                    {allUsers.map(user => (
-                        <SC.FriendsCard key={user.id}>
-                            <SC.RibbonFriendsAvatar>Avatar</SC.RibbonFriendsAvatar>
-                            <p>{user.name}</p>
-                        </SC.FriendsCard>
-                    ))}
-                </SC.RibbonFriends>
-
-                <SC.AllUsers>
-                    {allUsers.map(user => (
+                    <h2>Друзья</h2>
+                    {allUsers
+                        .filter(user => currentUser.friends && currentUser.friends.includes(user._id))
+                        .map(user => (
                             <SC.FriendsCard key={user.id}>
                                 <SC.RibbonFriendsAvatar>Avatar</SC.RibbonFriendsAvatar>
                                 <p>{user.name}</p>
-                                <button>Добавить в друзья</button>
-                        </SC.FriendsCard>
-                    ))}
-                </SC.AllUsers>
+                                <button onClick={() => handleRemoveFriend(user._id)}>Удалить из друзей</button>
+                            </SC.FriendsCard>
+                        ))}
+                </SC.RibbonFriends>
 
+                <SC.AllUsers>
+                    <h2>Не-друзья</h2>
+                    {allUsers
+                        .filter(user => !currentUser.friends || !currentUser.friends.includes(user._id))
+                        .filter(user => user._id !== currentUser._id)
+                        .map(user => (
+                            <SC.FriendsCard key={user.id}>
+                                <SC.RibbonFriendsAvatar>Avatar</SC.RibbonFriendsAvatar>
+                                <p>{user.name}</p>
+                                <button onClick={() => handleAddFriend(user._id)}>Добавить в друзья</button>
+                            </SC.FriendsCard>
+                        ))}
+                </SC.AllUsers>
             </SC.Wrapper>
         </>
     );

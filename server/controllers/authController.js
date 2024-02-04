@@ -130,22 +130,80 @@ class AuthController {
     }
 }
 
-async updateCurrentUser(req, res) {
-    try {
-        const currentUser = await User.findOne({ currentUser: true });
+    async updateCurrentUser(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
 
-        if (!currentUser) {
-            return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            await User.updateOne({ _id: currentUser._id }, { ...req.body, currentUser: true });
+
+            return res.json({ message: 'Данные пользователя успешно обновлены' });
+        } catch (error) {
+            console.error('Ошибка при обновлении данных пользователя на сервере:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
         }
-
-        await User.updateOne({ _id: currentUser._id }, { ...req.body, currentUser: true });
-
-        return res.json({ message: 'Данные пользователя успешно обновлены' });
-    } catch (error) {
-        console.error('Ошибка при обновлении данных пользователя на сервере:', error);
-        return res.status(500).json({ message: 'Сервер недоступен' });
     }
-}
+
+    async addFriend(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
+            const { friendId } = req.body;
+
+
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            const friendUser = await User.findOne({ _id: friendId });
+
+            if (!friendUser) {
+                return res.status(404).json({ message: 'Пользователь с указанным id не найден' });
+            }
+
+            if (currentUser.friends.includes(friendUser._id)) {
+                return res.status(400).json({ message: 'Пользователь уже является вашим другом' });
+            }
+
+            await User.updateOne({ _id: currentUser._id }, { $push: { friends: friendUser._id } });
+
+            return res.json({ message: 'Пользователь успешно добавлен в друзья' });
+        } catch (error) {
+                console.error('Ошибка при добавлении друга:', error);
+                return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async removeFriend(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
+            const { friendId } = req.body;
+
+
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            const friendUser = await User.findOne({ _id: friendId });
+
+            if (!friendUser) {
+                return res.status(404).json({ message: 'Пользователь с указанным id не найден' });
+            }
+
+
+            await User.updateOne({ _id: currentUser._id }, { $pull: { friends: friendUser._id } });
+
+            return res.json({ message: 'Пользователь успешно удален из друзей' });
+        } catch (error) {
+                console.error('Ошибка при удалении друга:', error);
+                return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+
+
 }
 
 module.exports = new AuthController()

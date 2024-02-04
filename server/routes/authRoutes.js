@@ -27,6 +27,11 @@ authRouter.get('/logout', authController.logout);
 
 authRouter.put('/updateCurrentUser', authController.updateCurrentUser);
 
+authRouter.post('/addFriend', authController.addFriend);
+authRouter.post('/removeFriend', authController.removeFriend);
+
+
+
 
 
 module.exports = authRouter
