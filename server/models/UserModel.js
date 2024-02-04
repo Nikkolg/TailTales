@@ -53,6 +53,10 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
+    friends: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+    }],
 })
 
 module.exports = model('User', UserSchema)
