@@ -160,7 +160,7 @@ export const TimePost = styled.div`
     flex: 3;
 `
 
-export const EditPost = styled.button`
+export const EditPostBtn = styled.button`
     flex: 1;
 `
 
@@ -178,12 +178,6 @@ export const FooterPosts = styled.div`
     border: 1px solid black;
 `
 
-
-
-
-
-
-
 export const NewPost = styled.form`
     width: 80%;
     display: flex;
@@ -193,4 +187,6 @@ export const NewPost = styled.form`
     margin: 0 auto;
     padding: 50px;
 `
+
+
 

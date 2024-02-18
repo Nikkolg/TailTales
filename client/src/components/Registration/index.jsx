@@ -30,7 +30,6 @@ export const Registration = () => {
 
     try {
         const res = await register('http://localhost:3008/registration', formData);
-        console.log(res);
         if (res && res.message) {
             console.log('Регистрация успешна');
             navigate('/')

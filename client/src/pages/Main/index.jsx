@@ -4,11 +4,12 @@ import useAuthRequest from '../../hooks/useAuthRequest';
 import { logoutUser, setAllUsers, setCurrentUser } from '../../redux/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
 import * as SC from "./styles"
+import { current } from '@reduxjs/toolkit';
 
 export const MainPage = () => {
     const currentUser = useSelector((state) => state.user.currentUser);
     const allUsers = useSelector((state) => state.user.allUsers);
-    const { sendRequest, updateCurrentUser, publishNewPost } = useAuthRequest();
+    const { sendRequest } = useAuthRequest();
     const dispatch = useDispatch()
     const navigate = useNavigate();
 
@@ -42,6 +43,9 @@ export const MainPage = () => {
         text: '',
         visibility: '',
     })
+
+    const [editedPost, setEditedPost] = useState(null);
+
 
 
     const fetchData = async () => {
@@ -190,7 +194,41 @@ export const MainPage = () => {
         }));
     }
 
-    // console.log(currentUser);
+    const handleEditPost = (e) => {
+        const { name, value } = e.target;
+    
+        setEditedPost((prevPost) => ({
+            ...prevPost,
+            [name]: value,
+        }));
+    
+        setValidationError('');
+    }
+
+    const handleSaveChangesPost = async () => {
+        const isTitleEmpty = editedPost.title.trim() === '';
+        const isTextEmpty = editedPost.text.trim() === '';
+        const isVisibilityEmpty = editedPost.visibility.trim() === '';
+    
+        if (isTitleEmpty || isTextEmpty || isVisibilityEmpty) {
+            setValidationError('Пожалуйста, заполните все поля перед сохранением.');
+            return;
+        }
+    
+        try {
+            await sendRequest('http://localhost:3008/editedPost', 'PUT', editedPost);
+            fetchData();
+            setEditedPost(null);
+        } catch (error) {
+            console.error('Ошибка при изменении поста', error);
+        }
+    }
+
+    
+
+
+
+    console.log(currentUser);
 
     return (
         <>
@@ -337,37 +375,75 @@ export const MainPage = () => {
                         ))}
                 </SC.AllUsers>
 
+                    <SC.BlogWrapper>
+                        <SC.NewPostButton>
+                        <button onClick={handleNewPost}>Новый пост</button>
+                        </SC.NewPostButton>
+                        {currentUser && currentUser.posts && (
+                            currentUser.posts.map((post) => (
+                                <>
+                                    <SC.BlogAvatar>
+                                    <SC.AvatarPost>Avatar</SC.AvatarPost>
+                                    </SC.BlogAvatar>
 
-                {currentUser && currentUser.posts && (
-                    currentUser.posts.map((post) => (
-                        <SC.BlogWrapper>
-                            <SC.NewPostButton>
-                            <button onClick={handleNewPost}>Новый пост</button>
-                            </SC.NewPostButton>
-                            <SC.BlogAvatar>
-                            <SC.AvatarPost>Avatar</SC.AvatarPost>
-                            </SC.BlogAvatar>
+                                    
+                                    <SC.Post key={post._id}>
+                                        <SC.TimePost>{new Date(post.createdAt).toLocaleString()}</SC.TimePost>
+                                        <SC.TextPost>
+                                    {editedPost ? (
+                                        <>
+                                            <input 
+                                                placeholder='Title' 
+                                                name='title' 
+                                                value={editedPost.title} 
+                                                onChange={handleEditPost}
+                                            />
+                                            <textarea 
+                                                placeholder='Text'
+                                                name='text' 
+                                                value={editedPost.text} 
+                                                onChange={handleEditPost}
+                                            />
+                                            <label>
+                                                <input 
+                                                    type='radio' 
+                                                    name='visibility' 
+                                                    value='Friends' 
+                                                    onChange={handleEditPost} 
+                                                />
+                                                Для друзей
+                                            </label>    
+                                            <label>
+                                                <input 
+                                                    type='radio' 
+                                                    name='visibility' 
+                                                    value='Others' 
+                                                    onChange={handleEditPost} 
+                                                /> 
+                                                Для всех
+                                            </label>
+                                            <button onClick={handleSaveChangesPost}>Сохранить</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h2>{post.title}</h2>
+                                            <div>{post.text}</div>
+                                            <button onClick={() => setEditedPost(post)}>Редактировать</button>
+                                            <SC.DeletePost onClick={() => deletePost(post._id)}>Удалить</SC.DeletePost>
 
-                            
-                            <SC.Post key={post._id}>
-                                <SC.TimePost>{new Date(post.createdAt).toLocaleString()}</SC.TimePost>
-                                <SC.EditPost>Редактировать</SC.EditPost>
-                                <SC.DeletePost onClick={() => deletePost(post._id)}>Удалить</SC.DeletePost>
-                                <SC.TextPost>
-                                <h2>{post.title}</h2>
-                                <div>{post.text}</div>
+                                        </>
+                                    )}
                                 </SC.TextPost>
-                                <SC.FooterPosts>
-                                <button>Like</button>
-                                <button>Dislike</button>
-                                <button>Share</button>
-                                </SC.FooterPosts>
-                            </SC.Post>
-                        
-                        </SC.BlogWrapper>
-                    )))}
-
-
+                                        <SC.FooterPosts>
+                                        <button>Like</button>
+                                        <button>Dislike</button>
+                                        <button>Share</button>
+                                        </SC.FooterPosts>
+                                    </SC.Post>
+                                </>
+                        )))}
+                    </SC.BlogWrapper>
+                    
                 {newPostFlag &&
                     <SC.NewPost>
                         <input type='text' name='title' placeholder='Title' onChange={handleChangeNewPost}/>

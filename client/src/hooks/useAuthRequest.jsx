@@ -42,15 +42,7 @@ const useAuthRequest = () => {
         [sendRequest]
     );
 
-    const updateCurrentUser = async (url, body) => {
-        return sendRequest(url, 'PUT', body);
-    };
-
-    const publishNewPost = async (url, body) => {
-        return sendRequest(url, 'POST', body);
-    };
-
-    return { sendRequest, register, updateCurrentUser, publishNewPost, error, setError };
+    return { sendRequest, register, error, setError };
 
 };
 
