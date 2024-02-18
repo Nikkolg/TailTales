@@ -261,6 +261,30 @@ class AuthController {
             return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
+
+    async editPost(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
+    
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            const { _id, ...updatedFields } = req.body;
+
+            await User.updateOne(
+                { _id: currentUser._id, 'posts._id': _id },
+                { $set: { 'posts.$': { ...currentUser.posts.id(_id)._doc, ...updatedFields } } }
+            );
+    
+            await currentUser.save();
+
+            return res.json({ message: 'Данные пользователя успешно обновлены' });
+        } catch (error) {
+            console.error('Ошибка при обновлении данных пользователя на сервере:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
 }
 
 module.exports = new AuthController()
