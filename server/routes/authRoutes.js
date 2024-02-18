@@ -18,17 +18,18 @@ authRouter.post(
 )
 
 authRouter.post('/', authController.auth)
+authRouter.post('/addFriend', authController.addFriend);
+authRouter.post('/removeFriend', authController.removeFriend);
+authRouter.post('/newPost', authController.createNewPost);
+authRouter.post('/deletePost', authController.deletePost);
 
 authRouter.get('/currentUser', authController.getCurrentUser);
-
 authRouter.get('/allUsers', authController.getAllUsers);
-
 authRouter.get('/logout', authController.logout);
 
 authRouter.put('/updateCurrentUser', authController.updateCurrentUser);
 
-authRouter.post('/addFriend', authController.addFriend);
-authRouter.post('/removeFriend', authController.removeFriend);
+
 
 
 
