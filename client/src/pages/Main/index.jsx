@@ -4,7 +4,6 @@ import useAuthRequest from '../../hooks/useAuthRequest';
 import { logoutUser, setAllUsers, setCurrentUser } from '../../redux/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
 import * as SC from "./styles"
-import { current } from '@reduxjs/toolkit';
 
 export const MainPage = () => {
     const currentUser = useSelector((state) => state.user.currentUser);
