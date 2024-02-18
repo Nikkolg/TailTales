@@ -8,7 +8,7 @@ import * as SC from "./styles"
 export const MainPage = () => {
     const currentUser = useSelector((state) => state.user.currentUser);
     const allUsers = useSelector((state) => state.user.allUsers);
-    const { sendRequest, updateCurrentUser } = useAuthRequest();
+    const { sendRequest, updateCurrentUser, publishNewPost } = useAuthRequest();
     const dispatch = useDispatch()
     const navigate = useNavigate();
 
@@ -35,6 +35,14 @@ export const MainPage = () => {
         addFriendId: '',
         removeFriendId: ''
     })
+
+    const [newPostFlag, setNewPostFlag] = useState(false)
+    const [newPostData, setNewPostData] = useState({
+        title: '',
+        text: '',
+        visibility: '',
+    })
+
 
     const fetchData = async () => {
         try {
@@ -97,10 +105,8 @@ export const MainPage = () => {
             gender: showOtherFields.gender.show ? showOtherFields.gender.value : editedInfo.gender,
         };
         
-        setEditing(false);
-
         try {
-            await updateCurrentUser('http://localhost:3008/updateCurrentUser', updatedInfo);
+            await sendRequest('http://localhost:3008/updateCurrentUser', 'PUT', updatedInfo);
             dispatch(setCurrentUser(updatedInfo));
             fetchData();
             setEditing(false);
@@ -127,14 +133,7 @@ export const MainPage = () => {
         }
     }
 
-
-    console.log(currentUser);
-    // console.log('All Users:', allUsers);
-
     useEffect(() => {
-        
-        
-
         fetchData();
     }, [dispatch, sendRequest, addAndRemoveFriend]);
     
@@ -147,6 +146,51 @@ export const MainPage = () => {
             console.error('Ошибка при выходе со страницы:', error);
         }
     }
+
+    const handleNewPost = () => {
+        setNewPostFlag(true)
+    }
+
+    const handlePublishPost = async () => {
+        const isTitleEmpty = newPostData.title.trim() === '';
+        const isTextEmpty = newPostData.text.trim() === '';
+        const isVisibilityEmpty = newPostData.visibility.trim() === '';
+        
+        if (isTitleEmpty || isTextEmpty || isVisibilityEmpty) {
+            setValidationError('Пожалуйста, заполните все поля перед публикацией.');
+            return;
+        }       
+        
+        setNewPostFlag(false);
+
+        try {
+            await sendRequest('http://localhost:3008/newPost', "POST", newPostData);
+            fetchData();
+            setNewPostFlag(false);
+        } catch (error) {
+            console.error('Ошибка при добавлении нового поста на сервере', error);
+        }
+    }
+
+    const deletePost = async (postId) => {
+        console.log(postId);
+        try {
+            await sendRequest('http://localhost:3008/deletePost', "POST", {postId});
+            fetchData();
+        } catch (error) {
+            console.error('Ошибка при удалении поста на сервере', error);
+        }
+    }
+
+    const handleChangeNewPost = (e) => {
+        const {name, value} = e.target
+        setNewPostData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    }
+
+    // console.log(currentUser);
 
     return (
         <>
@@ -271,7 +315,7 @@ export const MainPage = () => {
                     {allUsers
                         .filter(user => currentUser.friends && currentUser.friends.includes(user._id))
                         .map(user => (
-                            <SC.FriendsCard key={user.id}>
+                            <SC.FriendsCard key={user._id}>
                                 <SC.RibbonFriendsAvatar>Avatar</SC.RibbonFriendsAvatar>
                                 <p>{user.name}</p>
                                 <button onClick={() => handleRemoveFriend(user._id)}>Удалить из друзей</button>
@@ -285,13 +329,54 @@ export const MainPage = () => {
                         .filter(user => !currentUser.friends || !currentUser.friends.includes(user._id))
                         .filter(user => user._id !== currentUser._id)
                         .map(user => (
-                            <SC.FriendsCard key={user.id}>
+                            <SC.FriendsCard key={user._id}>
                                 <SC.RibbonFriendsAvatar>Avatar</SC.RibbonFriendsAvatar>
                                 <p>{user.name}</p>
                                 <button onClick={() => handleAddFriend(user._id)}>Добавить в друзья</button>
                             </SC.FriendsCard>
                         ))}
                 </SC.AllUsers>
+
+
+                {currentUser && currentUser.posts && (
+                    currentUser.posts.map((post) => (
+                        <SC.BlogWrapper>
+                            <SC.NewPostButton>
+                            <button onClick={handleNewPost}>Новый пост</button>
+                            </SC.NewPostButton>
+                            <SC.BlogAvatar>
+                            <SC.AvatarPost>Avatar</SC.AvatarPost>
+                            </SC.BlogAvatar>
+
+                            
+                            <SC.Post key={post._id}>
+                                <SC.TimePost>{new Date(post.createdAt).toLocaleString()}</SC.TimePost>
+                                <SC.EditPost>Редактировать</SC.EditPost>
+                                <SC.DeletePost onClick={() => deletePost(post._id)}>Удалить</SC.DeletePost>
+                                <SC.TextPost>
+                                <h2>{post.title}</h2>
+                                <div>{post.text}</div>
+                                </SC.TextPost>
+                                <SC.FooterPosts>
+                                <button>Like</button>
+                                <button>Dislike</button>
+                                <button>Share</button>
+                                </SC.FooterPosts>
+                            </SC.Post>
+                        
+                        </SC.BlogWrapper>
+                    )))}
+
+
+                {newPostFlag &&
+                    <SC.NewPost>
+                        <input type='text' name='title' placeholder='Title' onChange={handleChangeNewPost}/>
+                        <textarea name='text' placeholder='Text' onChange={handleChangeNewPost} />
+                        <label><input type='radio' name='visibility' value='Friends' onChange={handleChangeNewPost} />Для друзей</label>    
+                        <label><input type='radio' name='visibility' value='Others' onChange={handleChangeNewPost} /> Для всех</label>
+                        <input type='Submit' value='Опубликовать' onClick={handlePublishPost}/>
+                    </SC.NewPost>
+                }
             </SC.Wrapper>
         </>
     );

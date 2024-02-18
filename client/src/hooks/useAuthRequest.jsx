@@ -18,6 +18,8 @@ const useAuthRequest = () => {
                 if (!response.ok) {
                     try {
                         const json = await response.json();
+                        console.log(json);
+
                         throw new Error(json.message || "Ошибка, запрос не выполнен");
                     } catch (jsonError) {
                         throw new Error(`Ошибка, запрос не выполнен: ${response.statusText}`);
@@ -44,7 +46,11 @@ const useAuthRequest = () => {
         return sendRequest(url, 'PUT', body);
     };
 
-    return { sendRequest, register, updateCurrentUser, error, setError };
+    const publishNewPost = async (url, body) => {
+        return sendRequest(url, 'POST', body);
+    };
+
+    return { sendRequest, register, updateCurrentUser, publishNewPost, error, setError };
 
 };
 

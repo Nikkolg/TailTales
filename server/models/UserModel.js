@@ -1,5 +1,25 @@
 const {Schema, model} = require('mongoose')
 
+const PostSchema = new Schema({
+    title: {
+        type: String,
+        required: true,
+    },
+    text: {
+        type: String,
+        required: true,
+    },
+    visibility: {
+        type: String,
+        enum: ['Friends', 'Others'],
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
 const UserSchema = new Schema({
     name: {
         type: String,
@@ -57,6 +77,7 @@ const UserSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
     }],
+    posts: [PostSchema],
 })
 
 module.exports = model('User', UserSchema)

@@ -21,6 +21,7 @@ class AuthController {
             } = req.body;
 
             const userCheck = await User.findOne({ email });
+
             if (userCheck) {
                 return res.status(400).json({
                     message: `Пользователь с email ${email} уже существует. Пожалуйста введите другой email или авторизируйтесь`,
@@ -38,6 +39,8 @@ class AuthController {
                 gender,
             });
 
+            console.log(user);
+
             await user.save();
 
             req.session.user = {
@@ -48,6 +51,7 @@ class AuthController {
                 animalType: user.animalType,
                 gender: user.gender,
                 avatar: user.avatar,
+                currentUser: false,
             };
 
             return res.json({ message: 'Пользователь создан' });
@@ -202,8 +206,61 @@ class AuthController {
         }
     }
 
+    async createNewPost(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
 
+            console.log(currentUser);
 
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            const { title, text, visibility } = req.body;
+
+            const newPost = {
+                title,
+                text,
+                visibility,
+            };
+
+            currentUser.posts.push(newPost);
+
+            await currentUser.save();
+
+            return res.json({ message: 'Пост успешно добавлен' });
+        } catch (error) {
+            console.error('Ошибка при добавлении нового поста:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async deletePost(req, res) {
+        try {
+            const currentUser = await User.findOne({ currentUser: true });
+            console.log('1234');
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
+            }
+
+            const { postId } = req.body;
+            console.log(postId);
+
+            if (!postId) {
+                return res.status(400).json({ message: 'Пост для удаления не найден' });
+            }
+
+            await User.updateOne(
+                { _id: currentUser._id },
+                { $pull: { posts: { _id: postId } } }
+            );
+
+            return res.json({ message: 'Пост успешно удален' });
+        } catch (error) {
+            console.error('Ошибка при удалении поста:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
 }
 
 module.exports = new AuthController()
