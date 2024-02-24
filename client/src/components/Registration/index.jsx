@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from "react-router-dom";
 import useAuthRequest from '../../hooks/useAuthRequest';
+import { Form } from '../UI/Form';
+import { Input } from '../UI/Input';
+import { Dropdown } from '../UI/Select';
+import { InputRadio } from '../UI/InputRadio';
+import { Button } from '../UI/Button';
 
 export const Registration = () => {
   const { register, setError } = useAuthRequest();
@@ -13,8 +18,14 @@ export const Registration = () => {
     gender: '',
   });
 
-  const navigate = useNavigate()
+  const animalTypeOptions = ['Dog', 'Cat', 'Fish', 'Bird', 'Reptile', 'Other'];
+  const genderOptions = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+    { value: 'Other', label: 'Other' },
+  ];
 
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,28 +55,52 @@ export const Registration = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <input type='text' name='name' placeholder='Name' onChange={handleChange} />
-        <input type='email' name='email' placeholder='Email' onChange={handleChange} />
-        <input type='password' name='password' placeholder='Password' onChange={handleChange} />
-        <select name='animalType' onChange={handleChange}>
-          <option>Dog</option>
-          <option>Cat</option>
-          <option>Fish</option>
-          <option>Bird</option>
-          <option>Reptile</option>
-          <option>Other</option>
-        </select>
-        <input type='text' name='age' placeholder='Age' onChange={handleChange} />
-        <fieldset>
-          <legend>Выберите пол</legend>
-          <label><input type='radio' name='gender' value='Male' onChange={handleChange} /> Men</label>
-          <label><input type='radio' name='gender' value='Female' onChange={handleChange} /> Women</label>
-          <label><input type='radio' name='gender' value='Other' onChange={handleChange} /> Other</label>
-        </fieldset>
-        <input type='submit' value='Отправить' />
-      </form>
-      <button><Link to="/">На главную</Link></button>
+      <Form onSubmit={handleSubmit}>
+
+        <Input 
+          type='text' 
+          name='name' 
+          placeholder='Name' 
+          onChange={handleChange} 
+        />
+
+        <Input 
+          type='email' 
+          name='email' 
+          placeholder='Email' 
+          onChange={handleChange} 
+        />
+
+        <Input 
+          type='password' 
+          name='password' 
+          placeholder='Password' 
+          onChange={handleChange} 
+        />
+
+        <Dropdown 
+          name='animalType' 
+          options={animalTypeOptions} 
+          onChange={handleChange} 
+        />
+
+        <Input 
+          type='text' 
+          name='age' 
+          placeholder='Age' 
+          onChange={handleChange} 
+        />
+
+        <InputRadio
+          name='gender' 
+          options={genderOptions} 
+          onChange={handleChange}
+          text='Выберите пол' 
+        />
+
+        <Input type='submit' value='Отправить' />
+      </Form>
+      <Button><Link to="/">На главную</Link></Button>
     </>
   );
 };
