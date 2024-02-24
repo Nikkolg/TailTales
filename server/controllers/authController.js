@@ -76,6 +76,7 @@ class AuthController {
 
             await User.updateOne({ _id: user._id }, { currentUser: true });
 
+
             return res.json({
                 message: 'Аутентификация успешна',
                 user: {
@@ -101,6 +102,7 @@ class AuthController {
             if (!user) {
                 console.log('Пользователь не найден');
             }
+            
             return res.json({ user });
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
@@ -238,13 +240,11 @@ class AuthController {
     async deletePost(req, res) {
         try {
             const currentUser = await User.findOne({ currentUser: true });
-            console.log('1234');
             if (!currentUser) {
                 return res.status(400).json({ message: 'Текущий пользователь не найден' });
             }
 
             const { postId } = req.body;
-            console.log(postId);
 
             if (!postId) {
                 return res.status(400).json({ message: 'Пост для удаления не найден' });
@@ -279,9 +279,9 @@ class AuthController {
     
             await currentUser.save();
 
-            return res.json({ message: 'Данные пользователя успешно обновлены' });
+            return res.json({ message: 'Пост успешно обновлен' });
         } catch (error) {
-            console.error('Ошибка при обновлении данных пользователя на сервере:', error);
+            console.error('Ошибка при обновлении поста на сервере:', error);
             return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }

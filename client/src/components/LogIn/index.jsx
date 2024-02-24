@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import useAuthRequest from '../../hooks/useAuthRequest';
 import { setCurrentUser } from '../../redux/slices/userSlice';
+import { Input } from '../UI/Input'
+import { Button } from '../UI/Button'
+import { ErrorDisplay } from '../UI/ErrorDisplay'
+import { Form } from '../UI/Form'
 
 export const LogIn = () => {
   const { sendRequest, setError } = useAuthRequest();
@@ -18,21 +22,20 @@ export const LogIn = () => {
 
     try {
         const res = await sendRequest('http://localhost:3008/', 'POST', formData);
-        if (res && res.user) {
           dispatch(setCurrentUser(res.user))
-            navigate('/main');
-        } else {
-            setLoginError('Неверный логин или пароль');
-        }
+          navigate('/main');
+        
     } catch (error) {
         console.error('Ошибка при авторизации', error);
+        setLoginError('Неверный логин или пароль');
     }
-}
+  }
+
 
   return (
     <>
-      <form onSubmit={handleLogin}>
-          <input 
+      <Form onSubmit={handleLogin}>
+          <Input 
             type='email' 
             placeholder='email' 
             name='email'
@@ -40,7 +43,7 @@ export const LogIn = () => {
             onChange={(e) => setFormData({...formData, email: e.target.value})}
           />
           <br />
-          <input 
+          <Input 
             type='password' 
             placeholder='password' 
             name='passsword'
@@ -48,11 +51,11 @@ export const LogIn = () => {
             onChange={(e) => setFormData({...formData, password: e.target.value})}
           />
           <br />
-          <button type='submit'>Войти</button>
+          <Button type='submit'>Войти</Button>
           <br />
-      </form>
-      <button><Link to="/registration">Перейти к регистрации</Link></button>
-      {loginError && <div style={{ color: 'red' }}>{loginError}</div>}
+      </Form>
+      <Button><Link to="/registration">Перейти к регистрации</Link></Button>
+      <ErrorDisplay error={loginError} />
     </>
   )
 }
