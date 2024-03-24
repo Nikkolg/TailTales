@@ -1,13 +1,19 @@
 import React from "react";
+import * as SC from "./styles"
 
-export const ShowInfo = ({currentUser, handleEditToggle}) => (
+export const ShowInfo = ({user, children}) => (
     <>
-        <h2>Name: {currentUser.name}</h2>
-        <h3>{currentUser.animalType}</h3>
-        <h3>{currentUser.age} years</h3>
-        <p>{currentUser.gender}</p>
-        <p>Location</p>
-        <p>About me</p>
-        <button onClick={handleEditToggle}>Редактировать</button>
+        <SC.AvatarCurrentUser>
+            Avatar
+        </SC.AvatarCurrentUser>
+        <SC.InfoCurrentUser>
+            <h2>Name: {user.name}</h2>
+            <h3>{user.animalType}</h3>
+            <h3>{user.age} years</h3>
+            <p>{user.gender}</p>
+            <p>Location</p>
+            <p>About me</p>
+            {children}
+        </SC.InfoCurrentUser>
     </>
 )

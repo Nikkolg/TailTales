@@ -3,6 +3,11 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     currentUser: 'null',
     allUsers: [],
+    validationError: '',
+    addAndRemoveFriend: {
+      addFriendId: '',
+      removeFriendId: '',
+    },
 }
 
 const userSlice = createSlice({
@@ -19,9 +24,18 @@ const userSlice = createSlice({
       state.currentUser = 'null';
       state.allUsers = []
     },
+    setValidationError: (state, action) => {
+      state.validationError = action.payload;
+    },
+    setAddFriendId: (state, action) => {
+      state.addAndRemoveFriend.addFriendId = action.payload;
+    },
+    setRemoveFriendId: (state, action) => {
+      state.addAndRemoveFriend.removeFriendId = action.payload;
+    },
   },
 });
 
-export const { setCurrentUser, setAllUsers, logoutUser} = userSlice.actions;
+export const {setCurrentUser, setAllUsers, logoutUser, setValidationError, setAddFriendId, setRemoveFriendId} = userSlice.actions;
 
 export default userSlice.reducer;

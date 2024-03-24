@@ -1,21 +1,26 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import useAuthRequest from "../../../../hooks/useAuthRequest";
-import { setCurrentUser } from "../../../../redux/slices/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setValidationError } from "../../../../redux/slices/userSlice";
 import { EditingInfo } from "./Components/EditingInfo";
 import { ShowInfo } from "./Components/ShowInfo";
+import { Button } from "../../../../components/UI/Button";
+import { API_URLS } from "../../../../API/api_url";
+import useAuthRequest from "../../../../hooks/useAuthRequest";
+import useFetchData from "../../../../hooks/useFetchData";
 import * as SC from "./styles"
 
-export const ProfileCurrentUser = ({validationError, setValidationError, fetchData, currentUser}) => {
-
+export const ProfileCurrentUser = () => {
+    const validationError = useSelector((state) => state.user.validationError);
+    const currentUser = useSelector((state) => state.user.currentUser);
     const { sendRequest } = useAuthRequest();
     const dispatch = useDispatch()
+    const {fetchData} = useFetchData()
 
     const [editing, setEditing] = useState(false);
     const [editedInfo, setEditedInfo] = useState({
         name: currentUser.name || '',
         animalType: currentUser.animalType || '',
-        age: currentUser.age || '',
+        age: (currentUser.age || '').toString(),
         gender: currentUser.gender || '',
     });
     const [showOtherFields, setShowOtherFields] = useState({
@@ -53,7 +58,7 @@ export const ProfileCurrentUser = ({validationError, setValidationError, fetchDa
             [name]: value,
         }));
         
-        setValidationError('');
+        dispatch(setValidationError(''))
     };
 
     const handleSaveChanges = async () => {
@@ -65,7 +70,7 @@ export const ProfileCurrentUser = ({validationError, setValidationError, fetchDa
         const isOtherGenderEmpty = showOtherFields.gender.show && showOtherFields.gender.value.trim() === '';
         
         if (isNameEmpty || isAgeEmpty || isGenderEmpty || isAnimalTypeEmpty || isOtherAnimalTypeEmpty || isOtherGenderEmpty) {
-            setValidationError('Пожалуйста, заполните все поля перед сохранением.');
+            dispatch(setValidationError('Пожалуйста, заполните все поля перед сохранением'));
             return;
         }
         
@@ -76,8 +81,7 @@ export const ProfileCurrentUser = ({validationError, setValidationError, fetchDa
         };
         
         try {
-            await sendRequest('http://localhost:3008/updateCurrentUser', 'PUT', updatedInfo);
-            dispatch(setCurrentUser(updatedInfo));
+            await sendRequest(API_URLS.updateCurrentUser, 'PUT', updatedInfo);
             fetchData();
             setEditing(false);
         } catch (error) {
@@ -109,31 +113,24 @@ export const ProfileCurrentUser = ({validationError, setValidationError, fetchDa
         setEditing(!editing);
     };
 
-
     return (
         <SC.Profile>
-            <SC.AvatarCurrentUser>
-                Avatar
-            </SC.AvatarCurrentUser>
-            <SC.InfoCurrentUser>
-                {editing ? 
-                    <EditingInfo 
-                        editedInfo={editedInfo}
-                        handleInputChange={handleInputChange}
-                        animalTypeOptions={animalTypeOptions}
-                        showOtherFields={showOtherFields}
-                        setShowOtherFields={setShowOtherFields}
-                        genderOptions={genderOptions}
-                        handleSaveChanges={handleSaveChanges}
-                        validationError={validationError}
-                        handleCancelChanges={handleCancelChanges}
-                    /> : 
-                    <ShowInfo 
-                        currentUser={currentUser}
-                        handleEditToggle={handleEditToggle}
-                    />
-                }
-            </SC.InfoCurrentUser>
+            {editing ? 
+                <EditingInfo 
+                    editedInfo={editedInfo}
+                    handleInputChange={handleInputChange}
+                    animalTypeOptions={animalTypeOptions}
+                    showOtherFields={showOtherFields}
+                    setShowOtherFields={setShowOtherFields}
+                    genderOptions={genderOptions}
+                    handleSaveChanges={handleSaveChanges}
+                    validationError={validationError}
+                    handleCancelChanges={handleCancelChanges}
+                /> : 
+                <ShowInfo user={currentUser}>
+                    <Button onClick={handleEditToggle}>Редактировать</Button>
+                </ShowInfo>
+            }
         </SC.Profile>
     )
 }

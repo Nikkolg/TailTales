@@ -1,10 +1,10 @@
 import { styled } from "styled-components";
 
-export const Profile = styled.div`
-    border: 1px solid black;
+export const RibbonFriends = styled.div`
+    width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin: 0 auto;
-    width: 100%;
+    flex-wrap: wrap;
+    border: 1px solid black;
 `

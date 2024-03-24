@@ -18,6 +18,18 @@ const PostSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    likes: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    ],
+    dislikes: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+        },
+    ],
 });
 
 const UserSchema = new Schema({
@@ -68,10 +80,6 @@ const UserSchema = new Schema({
                     return 'default-avatar.jpg';
             }
         }
-    },
-    currentUser: {
-        type: Boolean,
-        default: false
     },
     friends: [{
         type: Schema.Types.ObjectId,

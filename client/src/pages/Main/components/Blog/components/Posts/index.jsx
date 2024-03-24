@@ -1,15 +1,19 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { PostCard } from './components/PostCard'
 import { EditPostCard } from './components/EditPostCard'
+import { API_URLS } from "../../../../../../API/api_url";
+import { useSelector } from "react-redux";
+import useFetchData from "../../../../../../hooks/useFetchData";
 
-export const Posts = ({handlePostOperation, setValidationError, validationError}) => {
+export const Posts = ({handlePostOperation}) => {
     const currentUser = useSelector((state) => state.user.currentUser);
     const [editPost, setEditPost] = useState(null)
+    const {fetchData} = useFetchData()
 
     const deletePost = async (postId) => {
         try {
-            await handlePostOperation('http://localhost:3008/deletePost', "POST", {postId});
+            await handlePostOperation(API_URLS.deletePost, "POST", {postId});
+            fetchData()
         } catch (error) {
             console.error('Ошибка при удалении поста на сервере', error);
         }
@@ -20,22 +24,15 @@ export const Posts = ({handlePostOperation, setValidationError, validationError}
             {currentUser.posts && currentUser.posts.length > 0 ? (
                 <>
                     {!editPost ? (
-                        <>
-                            {currentUser.posts.map((post) => (
-                                <PostCard 
-                                    key={post._id} 
-                                    post={post} 
-                                    setEditPost={setEditPost}
-                                    deletePost={deletePost}
-                                />
-                            ))}
-                        </>
+                        <PostCard 
+                            user={null}
+                            setEditPost={setEditPost}
+                            deletePost={deletePost}
+                        />
                     ) : (
                         <EditPostCard 
                             editPost={editPost}
                             setEditPost={setEditPost}
-                            setValidationError={setValidationError}
-                            validationError={validationError}
                             handlePostOperation={handlePostOperation}
                         />
                     )}

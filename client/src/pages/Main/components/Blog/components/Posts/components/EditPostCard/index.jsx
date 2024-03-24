@@ -1,7 +1,12 @@
 import React from "react";
 import { ErrorDisplay } from "../../../../../../../../components/UI/ErrorDisplay";
+import { API_URLS } from "../../../../../../../../API/api_url";
+import { useDispatch, useSelector } from "react-redux";
+import { setValidationError } from "../../../../../../../../redux/slices/userSlice";
 
-export const EditPostCard = ({editPost, setEditPost, setValidationError, validationError, handlePostOperation}) => {
+export const EditPostCard = ({editPost, setEditPost, handlePostOperation}) => {
+    const validationError = useSelector((state) => state.user.validationError);
+    const dispatch = useDispatch()
 
     const handleEditPost = (e) => {
         const { name, value } = e.target;
@@ -11,7 +16,7 @@ export const EditPostCard = ({editPost, setEditPost, setValidationError, validat
             [name]: value,
         }));
     
-        setValidationError('');
+        dispatch(setValidationError(''))
     }
 
     const handleSaveChangesPost = async () => {
@@ -20,12 +25,12 @@ export const EditPostCard = ({editPost, setEditPost, setValidationError, validat
         const isVisibilityEmpty = editPost.visibility.trim() === '';
     
         if (isTitleEmpty || isTextEmpty || isVisibilityEmpty) {
-            setValidationError('Пожалуйста, заполните все поля перед сохранением.');
+            dispatch(setValidationError('Пожалуйста, заполните все поля перед сохранением'));
             return;
         }
 
         try {
-            await handlePostOperation('http://localhost:3008/editedPost', 'PUT', editPost);
+            await handlePostOperation(API_URLS.editedPost, 'PUT', editPost);
             setEditPost(null)
         } catch (error) {
             console.error('Ошибка при изменении поста', error);
