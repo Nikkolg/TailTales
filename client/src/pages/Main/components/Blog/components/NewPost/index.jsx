@@ -3,9 +3,16 @@ import { ErrorDisplay } from "../../../../../../components/UI/ErrorDisplay";
 import { Button } from "../../../../../../components/UI/Button";
 import { Input } from "../../../../../../components/UI/Input";
 import { Textarea } from "../../../../../../components/UI/Textarea";
+import { API_URLS } from "../../../../../../API/api_url";
+import { useDispatch, useSelector } from "react-redux";
+import { setValidationError } from "../../../../../../redux/slices/userSlice";
+import useFetchData from "../../../../../../hooks/useFetchData";
 import * as SC from "./styles"
 
-export const NewPost = ({setValidationError, handlePostOperation, validationError, setNewPostFlag}) => {
+export const NewPost = ({handlePostOperation, setNewPostFlag}) => {
+    const dispatch = useDispatch()
+    const {fetchData} = useFetchData()
+    const validationError = useSelector((state) => state.user.validationError);
     const [newPostData, setNewPostData] = useState({
         title: '',
         text: '',
@@ -20,7 +27,7 @@ export const NewPost = ({setValidationError, handlePostOperation, validationErro
             [name]: value,
         }));
     
-        setValidationError('');
+        dispatch(setValidationError(''))
     }
 
     const handlePublishPost = async () => {
@@ -29,17 +36,22 @@ export const NewPost = ({setValidationError, handlePostOperation, validationErro
         const isVisibilityEmpty = newPostData.visibility.trim() === '';
         
         if (isTitleEmpty || isTextEmpty || isVisibilityEmpty) {
-            setValidationError('Пожалуйста, заполните все поля перед публикацией.');
+            dispatch(setValidationError('Пожалуйста, заполните все поля перед публикацией'));
             return;
         }
         
         try {
-            await handlePostOperation('http://localhost:3008/newPost', 'POST', newPostData);
+            await handlePostOperation(API_URLS.newPost, 'POST', newPostData);
+            fetchData()
             setNewPostFlag(false);
         } catch (error) {
             console.error('Ошибка при добавлении нового поста на сервере', error);
         }
     }
+
+    const handleCancel = () => {
+        setNewPostFlag(false);
+    };
 
     return (
         <SC.NewPost>
@@ -48,6 +60,7 @@ export const NewPost = ({setValidationError, handlePostOperation, validationErro
                 <label><input type='radio' name='visibility' value='Friends' onChange={handleChangeNewPost} />Для друзей</label>    
                 <label><input type='radio' name='visibility' value='Others' onChange={handleChangeNewPost} /> Для всех</label>
                 <Button onClick={handlePublishPost}>Опубликовать</Button>
+                <Button onClick={handleCancel}>Отмена</Button>
                 {validationError && <ErrorDisplay error={validationError} />}
         </SC.NewPost>
     )

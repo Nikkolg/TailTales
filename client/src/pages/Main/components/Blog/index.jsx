@@ -3,11 +3,13 @@ import useAuthRequest from "../../../../hooks/useAuthRequest";
 import { NewPost } from './components/NewPost'
 import { Posts } from './components/Posts'
 import { Button } from "../../../../components/UI/Button";
+import useFetchData from "../../../../hooks/useFetchData";
 import * as SC from "./styles"
 
-export const Blog = ({fetchData, setValidationError, validationError}) => {
+export const Blog = () => {
     const [newPostFlag, setNewPostFlag] = useState(false)
     const { sendRequest } = useAuthRequest();
+    const {fetchData} = useFetchData()
 
     const handleNewPost = () => {
         setNewPostFlag(true)
@@ -28,15 +30,11 @@ export const Blog = ({fetchData, setValidationError, validationError}) => {
             <>
             {newPostFlag ? (
                 <NewPost 
-                    setValidationError={setValidationError}
                     setNewPostFlag={setNewPostFlag}
                     handlePostOperation={handlePostOperation}
-                    validationError={validationError}
                 />
                 ) : (
                 <Posts 
-                    setValidationError={setValidationError}
-                    validationError={validationError}
                     handlePostOperation={handlePostOperation}
                 />
             )}

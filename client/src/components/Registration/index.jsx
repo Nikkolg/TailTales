@@ -6,6 +6,7 @@ import { Input } from '../UI/Input';
 import { Dropdown } from '../UI/Select';
 import { InputRadio } from '../UI/InputRadio';
 import { Button } from '../UI/Button';
+import { API_URLS } from '../../API/api_url';
 
 export const Registration = () => {
   const { register, setError } = useAuthRequest();
@@ -40,8 +41,7 @@ export const Registration = () => {
     setError(null);
 
     try {
-        const res = await register('http://localhost:3008/registration', formData);
-        console.log(res);
+        const res = await register(API_URLS.registration, formData);
         if (res && res.message) {
             console.log('Регистрация успешна');
             navigate('/')

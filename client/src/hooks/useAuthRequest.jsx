@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 
-const useAuthRequest = () => {
+export const useAuthRequest = () => {
     const [error, setError] = useState(null);
-
+    const getToken = () => localStorage.getItem('token');
+    
     const sendRequest = useCallback(
         async (url, method, body) => {
             try {
@@ -11,6 +12,7 @@ const useAuthRequest = () => {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`,
                     },
                     body: body ? JSON.stringify(body) : undefined,
                 });

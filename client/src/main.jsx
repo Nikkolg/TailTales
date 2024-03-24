@@ -10,9 +10,7 @@ import { Provider } from "react-redux"
 import { RegistrationPage } from './pages/Registration';
 import { MainPage } from './pages/Main';
 import { store } from './redux/store.js';
-
-
-
+import { UsersProfile } from './pages/UsersProfile/index.jsx';
 
 const router = createBrowserRouter([
   {
@@ -26,7 +24,11 @@ const router = createBrowserRouter([
   {
     path: "main",
     element: <MainPage />
-  }
+  },
+  {
+    path: "user/:userId",
+    element: <UsersProfile />
+  },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(

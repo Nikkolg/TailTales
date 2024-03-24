@@ -1,7 +1,7 @@
 const User = require('../models/UserModel')
 const bcrypt = require('bcryptjs')
-const {validationResult} = require('express-validator')
-
+const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 
 class AuthController {
     async registration(req, res) {
@@ -10,7 +10,7 @@ class AuthController {
             if (!errors.isEmpty()) {
                 return res.status(400).json({ message: 'Неверный запрос', errors });
             }
-
+    
             const {
                 name,
                 email,
@@ -19,17 +19,17 @@ class AuthController {
                 age = null,
                 gender = 'other',
             } = req.body;
-
+    
             const userCheck = await User.findOne({ email });
-
+    
             if (userCheck) {
                 return res.status(400).json({
-                    message: `Пользователь с email ${email} уже существует. Пожалуйста введите другой email или авторизируйтесь`,
+                message: `Пользователь с email ${email} уже существует. Пожалуйста введите другой email или авторизируйтесь`,
                 });
             }
-
+    
             const hashPassword = await bcrypt.hash(password, 6);
-
+        
             const user = new User({
                 name,
                 email,
@@ -38,22 +38,9 @@ class AuthController {
                 age,
                 gender,
             });
-
-            console.log(user);
-
+        
             await user.save();
-
-            req.session.user = {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                age: user.age,
-                animalType: user.animalType,
-                gender: user.gender,
-                avatar: user.avatar,
-                currentUser: false,
-            };
-
+    
             return res.json({ message: 'Пользователь создан' });
         } catch (e) {
             console.error(e);
@@ -65,6 +52,7 @@ class AuthController {
         try {
             const { email, password } = req.body;
             const user = await User.findOne({ email });
+
             if (!user) {
                 return res.status(400).json({ message: 'Пользователь не найден' });
             }
@@ -74,11 +62,15 @@ class AuthController {
                 return res.status(400).json({ message: 'Неверный пароль' });
             }
 
-            await User.updateOne({ _id: user._id }, { currentUser: true });
-
+            const token = jwt.sign(
+                { userId: user.id, email: user.email },
+                process.env.JWT_SECRET,
+                { expiresIn: '1h' }
+            );
 
             return res.json({
                 message: 'Аутентификация успешна',
+                token,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -87,7 +79,6 @@ class AuthController {
                     animalType: user.animalType,
                     gender: user.gender,
                     avatar: user.avatar,
-                    currentUser: true,
                 },
             });
         } catch (e) {
@@ -98,11 +89,11 @@ class AuthController {
 
     async getCurrentUser(req, res) {
         try {
-            const user = await User.findOne({ currentUser: true }, '-password');
+            const user = await User.findById(req.userId);   
+            
             if (!user) {
                 console.log('Пользователь не найден');
-            }
-            
+            }            
             return res.json({ user });
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
@@ -120,16 +111,37 @@ class AuthController {
         }
     }
 
+    async getFriends(req, res) {
+        try {
+            const { friendId } = req.body;
+            const friendsData = await User.find({ _id: { $in: friendId } }, '-password');
+            return res.json({ friendsData });
+        } catch (error) {
+            console.error('Ошибка при получении данных о друзьях:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async getUserById(req, res) {
+        try {
+            const { userId } = req.params;
+            const user = await User.findById(userId, '-password');
+            
+            if (!user) {
+                return res.status(404).json({ message: 'Пользователь не найден' });
+            }
+    
+            return res.json({ user });
+        } catch (error) {
+            console.error('Ошибка при получении данных пользователя:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
     async logout(req, res) {
     try {
-        const currentUser = await User.findOne({ currentUser: true });
-
-        if (currentUser) {
-            await User.updateOne({ _id: currentUser._id }, { currentUser: false });
-            return res.json({ message: 'Выход выполнен успешно' });
-        }
-
-        return res.status(400).json({ message: 'Текущий пользователь не найден' });
+        res.setHeader('Authorization', '');
+        return res.json({ message: 'Выход выполнен успешно' });
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         res.status(500).json({ message: 'Сервер недоступен' });
@@ -138,14 +150,8 @@ class AuthController {
 
     async updateCurrentUser(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
-
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
-
-            await User.updateOne({ _id: currentUser._id }, { ...req.body, currentUser: true });
-
+            const userId = req.userId;
+            await User.updateOne({ _id: userId }, { ...req.body });
             return res.json({ message: 'Данные пользователя успешно обновлены' });
         } catch (error) {
             console.error('Ошибка при обновлении данных пользователя на сервере:', error);
@@ -155,42 +161,37 @@ class AuthController {
 
     async addFriend(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
+            const userId = req.userId;
             const { friendId } = req.body;
-
-
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
-
             const friendUser = await User.findOne({ _id: friendId });
 
             if (!friendUser) {
                 return res.status(404).json({ message: 'Пользователь с указанным id не найден' });
+            }
+
+            const currentUser = await User.findById(userId);
+            
+            if (!currentUser) {
+                return res.status(400).json({ message: 'Текущий пользователь не найден' });
             }
 
             if (currentUser.friends.includes(friendUser._id)) {
                 return res.status(400).json({ message: 'Пользователь уже является вашим другом' });
             }
 
-            await User.updateOne({ _id: currentUser._id }, { $push: { friends: friendUser._id } });
+            await User.updateOne({ _id: userId }, { $push: { friends: friendUser._id } });
 
             return res.json({ message: 'Пользователь успешно добавлен в друзья' });
         } catch (error) {
-                console.error('Ошибка при добавлении друга:', error);
-                return res.status(500).json({ message: 'Сервер недоступен' });
+            console.error('Ошибка при добавлении друга:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
 
     async removeFriend(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
+            const userId = req.userId;
             const { friendId } = req.body;
-
-
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
 
             const friendUser = await User.findOne({ _id: friendId });
 
@@ -198,8 +199,7 @@ class AuthController {
                 return res.status(404).json({ message: 'Пользователь с указанным id не найден' });
             }
 
-
-            await User.updateOne({ _id: currentUser._id }, { $pull: { friends: friendUser._id } });
+            await User.updateOne({ _id: userId }, { $pull: { friends: friendUser._id } });
 
             return res.json({ message: 'Пользователь успешно удален из друзей' });
         } catch (error) {
@@ -210,14 +210,7 @@ class AuthController {
 
     async createNewPost(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
-
-            console.log(currentUser);
-
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
-
+            const userId = req.userId;
             const { title, text, visibility } = req.body;
 
             const newPost = {
@@ -226,9 +219,7 @@ class AuthController {
                 visibility,
             };
 
-            currentUser.posts.push(newPost);
-
-            await currentUser.save();
+            await User.updateOne({ _id: userId }, { $push: { posts: newPost } });
 
             return res.json({ message: 'Пост успешно добавлен' });
         } catch (error) {
@@ -239,21 +230,14 @@ class AuthController {
 
     async deletePost(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
-
+            const userId = req.userId;
             const { postId } = req.body;
 
             if (!postId) {
                 return res.status(400).json({ message: 'Пост для удаления не найден' });
             }
 
-            await User.updateOne(
-                { _id: currentUser._id },
-                { $pull: { posts: { _id: postId } } }
-            );
+            await User.updateOne({ _id: userId }, { $pull: { posts: { _id: postId } } });
 
             return res.json({ message: 'Пост успешно удален' });
         } catch (error) {
@@ -264,20 +248,13 @@ class AuthController {
 
     async editPost(req, res) {
         try {
-            const currentUser = await User.findOne({ currentUser: true });
-    
-            if (!currentUser) {
-                return res.status(400).json({ message: 'Текущий пользователь не найден' });
-            }
-
-            const { _id, ...updatedFields } = req.body;
+            const userId = req.userId;
+            const {_id, ...updatedFields } = req.body;
 
             await User.updateOne(
-                { _id: currentUser._id, 'posts._id': _id },
-                { $set: { 'posts.$': { ...currentUser.posts.id(_id)._doc, ...updatedFields } } }
+                { _id: userId, 'posts._id': _id },
+                { $set: { 'posts.$.title': updatedFields.title, 'posts.$.text': updatedFields.text, 'posts.$.visibility': updatedFields.visibility } }
             );
-    
-            await currentUser.save();
 
             return res.json({ message: 'Пост успешно обновлен' });
         } catch (error) {
