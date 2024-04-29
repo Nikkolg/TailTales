@@ -21,8 +21,6 @@ export const UsersProfile = () => {
     const { sendRequest } = useAuthRequest();
     const { fetchData } = useFetchData();
     const navigate = useNavigate();
-
-    console.log(currentUser);
     
     useEffect(() => {
         const fetchUserData = async () => {
@@ -42,6 +40,7 @@ export const UsersProfile = () => {
 
         fetchUserData();
     }, [userId, sendRequest, navigate]);
+
 
     return (
         <Container>
