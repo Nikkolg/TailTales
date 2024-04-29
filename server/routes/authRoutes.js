@@ -39,6 +39,8 @@ authRouter.post('/removeFriend', verifyToken, authController.removeFriend);
 authRouter.post('/newPost', verifyToken, authController.createNewPost);
 authRouter.post('/deletePost', verifyToken, authController.deletePost);
 authRouter.post('/getFriendsData', verifyToken, authController.getFriends);
+authRouter.post('/likedPost', verifyToken, authController.likedPost);
+authRouter.post('/dislikedPost', verifyToken, authController.dislikedPost);
 
 authRouter.get('/currentUser', verifyToken, authController.getCurrentUser);
 authRouter.get('/allUsers', verifyToken, authController.getAllUsers);

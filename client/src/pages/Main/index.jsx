@@ -21,6 +21,8 @@ export const MainPage = () => {
     const { userLogout } = useLogout();
     const { fetchData } = useFetchData();
 
+    // console.log(allUsers);
+
     useEffect(() => {
         fetchData();
     }, [dispatch, sendRequest]);

@@ -3,6 +3,25 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
+const checkUserAndPost = async (userId, postId) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error("Пользователь не найден");
+    }
+
+    const owner = await User.findOne({ 'posts._id': postId });
+    if (!owner) {
+        throw new Error("Пост не найден");
+    }
+
+    const post = owner.posts.find(p => p._id.toString() === postId);
+    if (!post) {
+        throw new Error("Пост не найден");
+    }
+
+    return { user, post };
+};
+
 class AuthController {
     async registration(req, res) {
         try {
@@ -65,7 +84,7 @@ class AuthController {
             const token = jwt.sign(
                 { userId: user.id, email: user.email },
                 process.env.JWT_SECRET,
-                { expiresIn: '1h' }
+                { expiresIn: '3h' }
             );
 
             return res.json({
@@ -262,6 +281,69 @@ class AuthController {
             return res.status(500).json({ message: 'Сервер недоступен' });
         }
     }
+
+    async likedPost(req, res) {
+        try {
+            const { postId, userId } = req.body;
+
+            const { user, post } = await checkUserAndPost(userId, postId);
+
+            if (post.dislikes.includes(userId)) {
+                return res.status(400).json({ message: 'Пользователь уже поставил "Dislike", нельзя поставить "Like"' });
+            }
+
+            const isLiked = post.likes.includes(userId);
+
+            if (isLiked) {
+                await User.updateOne(
+                    { 'posts._id': postId },
+                    { $pull: { 'posts.$.likes': userId } }
+                );
+                return res.json({ message: 'Лайк успешно удален с поста' });
+            } else {
+                await User.updateOne(
+                    { 'posts._id': postId },
+                    { $push: { 'posts.$.likes': userId } }
+                );
+                return res.json({ message: 'Лайк успешно добавлен к посту' });
+            }
+        } catch (error) {
+            console.error('Ошибка при лайке поста:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
+    async dislikedPost(req, res) {
+        try {
+            const { postId, userId } = req.body;
+
+            const { user, post } = await checkUserAndPost(userId, postId);
+
+            if (post.likes.includes(userId)) {
+                return res.status(400).json({ message: 'Пользователь уже поставил "Like", нельзя поставить "Dislike"' });
+            }
+
+            const isDisliked = post.dislikes.includes(userId);
+
+            if (isDisliked) {
+                await User.updateOne(
+                    { 'posts._id': postId },
+                    { $pull: { 'posts.$.dislikes': userId } }
+                );
+                return res.json({ message: 'Dislike успешно удален с поста' });
+            } else {
+                await User.updateOne(
+                    { 'posts._id': postId },
+                    { $push: { 'posts.$.dislikes': userId } }
+                );
+                return res.json({ message: 'Dislike успешно добавлен к посту' });
+            }
+        } catch (error) {
+            console.error('Ошибка при отправке dislike:', error);
+            return res.status(500).json({ message: 'Сервер недоступен' });
+        }
+    }
+
 }
 
 module.exports = new AuthController()

@@ -11,4 +11,6 @@ export const API_URLS = {
     editedPost: 'http://localhost:3008/editedPost',
     login: 'http://localhost:3008/',
     registration: 'http://localhost:3008/registration',
+    like: 'http://localhost:3008/likedPost',
+    dislike: 'http://localhost:3008/dislikedPost'
 };
