@@ -11,6 +11,7 @@ import { RegistrationPage } from './pages/Registration';
 import { MainPage } from './pages/Main';
 import { store } from './redux/store.js';
 import { UsersProfile } from './pages/UsersProfile/index.jsx';
+import { AllUsers } from './pages/AllUsers/index.jsx';
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "user/:userId",
     element: <UsersProfile />
+  },
+  {
+    path: "allUsers",
+    element: <AllUsers />
   },
 ])
 

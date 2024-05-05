@@ -1,5 +1,6 @@
 import React, { useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { Container } from '../../components/UI/Container'
 import { Header } from '../../components/Header'
 import { ProfileCurrentUser } from './components/ProfileCurrentUser';
@@ -15,13 +16,10 @@ import * as SC from "./styles"
 
 export const MainPage = () => {
     const currentUser = useSelector((state) => state.user.currentUser);
-    const allUsers = useSelector((state) => state.user.allUsers);
     const dispatch = useDispatch();
     const { sendRequest } = useAuthRequest();
     const { userLogout } = useLogout();
     const { fetchData } = useFetchData();
-
-    // console.log(allUsers);
 
     useEffect(() => {
         fetchData();
@@ -38,7 +36,7 @@ export const MainPage = () => {
 
             <NotificationPanel>
                 <div>Message</div>
-                <div>Friends</div>
+                <Link to='/allUsers'><div>Add Friends</div></Link>
                 <div>Walks</div>
                 <div>Sniff the Tail</div>
             </NotificationPanel>
@@ -46,13 +44,8 @@ export const MainPage = () => {
             <PhotoGallery />
 
             <FriendsPanel
-                friends={currentUser.friends}
+                users={currentUser}
                 currentUser={true}
-            />
-
-            <FriendsPanel
-                friends={allUsers}
-                currentUser={false}
             />
 
             <Blog />

@@ -41,7 +41,6 @@ export const PostCard = ({ setEditPost, deletePost, user }) => {
         setDislikedPosts(updateDislikes);
     }, [user, currentUser._id]);
 
-
     const handleLike = async (postId) => {
         const isAlreadyLiked = likedPosts[postId];
         const isAlreadyDisliked = dislikedPosts[postId];
@@ -72,6 +71,7 @@ export const PostCard = ({ setEditPost, deletePost, user }) => {
     };
 
     const handleDislike = async (postId) => {
+
         const isAlreadyDisliked = dislikedPosts[postId];
         const isAlreadyLiked = likedPosts[postId];
 

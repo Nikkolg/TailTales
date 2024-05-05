@@ -8,24 +8,28 @@ import useAuthRequest from "../../hooks/useAuthRequest";
 import useFetchData from "../../hooks/useFetchData";
 import * as SC from "./styles"
 
-export const FriendsPanel = ({friends, currentUser}) => {
-    const [friendsData, setFriendsData] = useState([])
+export const FriendsPanel = ({users, currentUser, searchUsers}) => {
+    const [usersData, setUsersData] = useState([])
     const { sendRequest } = useAuthRequest();
     const {fetchData} = useFetchData();
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const fetchFriendsData = async () => {
-            try {
-                const resFriendsData = await sendRequest(API_URLS.friendsData, 'POST', { friendId: friends });
-                setFriendsData(resFriendsData.friendsData);
-            } catch (error) {
-                console.error('Ошибка при получении данных о друзьях:', error);
-            }
-        };
-    
-        fetchFriendsData();
-    }, [friends]);
+        if (currentUser === true) {
+            const fetchFriendsData = async () => {
+                try {
+                    const resFriendsData = await sendRequest(API_URLS.friendsData, 'POST', { friendId: users.friends });
+                    setUsersData(resFriendsData.friendsData);
+                } catch (error) {
+                    console.error('Ошибка при получении данных о друзьях:', error);
+                }
+            };
+            fetchFriendsData();
+        } else {
+            const filteredUsers = users.filter(user => user._id !== currentUser._id);
+            setUsersData(filteredUsers);
+        }
+    }, [users, currentUser]);
 
     const handleRemoveFriend = async (userId) => {
         try {
@@ -47,21 +51,33 @@ export const FriendsPanel = ({friends, currentUser}) => {
         }
     }
 
+    const filteredUsersData = usersData.filter(user => {
+        if (!searchUsers || searchUsers.trim() === '') {
+            return true;
+        }
+    
+        const lowercasedSearch = searchUsers.toLowerCase();
+        return user.name.toLowerCase().includes(lowercasedSearch);
+    });
+
     return (
         <SC.RibbonFriends>
             <h2>Друзья</h2>
-                {friendsData.map(user => (
+                {filteredUsersData.map(user => (
                     <div key={user._id}>
                         <ProfileCard 
                             user={user}
                             key={user._id}
                         />
-                        {currentUser ? ( 
+                        {currentUser === true ? (
+                        <Button onClick={() => handleRemoveFriend(user._id)}>Удалить из друзей</Button>
+                    ) : (
+                        currentUser.friends.includes(user._id) ? (
                             <Button onClick={() => handleRemoveFriend(user._id)}>Удалить из друзей</Button>
                         ) : (
                             <Button onClick={() => handleAddFriend(user._id)}>Добавить в друзья</Button>
                         )
-                        }
+                )}
                     </div>
             ))}
         </SC.RibbonFriends>
